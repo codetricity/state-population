@@ -25,7 +25,10 @@ function plot(data, xScale, yScale) {
     .data(data)
     .enter()
     .append('circle')
-    .attr('cx', d => xScale(d.state))
+    .attr('cx', (d) => {
+      console.log(xScale('California'));
+      return xScale(d.state);
+    })
     .attr('cy', d => yScale(d.population))
     .attr('r', '5');
 }
@@ -57,10 +60,20 @@ function createXAxis(data) {
     .attr('transform', `translate(0, ${height})`)
     .call(xAxis)
     .selectAll('.tick')
+    .remove()
     .selectAll('text')
+    .remove();
     // .attr('text-anchor', 'end')
-    .attr('transform', 'rotate(-45)');
-  return xScale;
+    // .attr('transform', 'rotate(-45)');
+  for (let i = 0; i < states.length; i++) {
+    svg.append('text')
+      .text(states[i])
+      .attr('x', i * 60)
+      .attr('y', height + 20 )
+      .attr('text-anchor', 'front')
+      .attr('transform', `rotate(45, ${i * 60}, ${height + 20})`);
+  }
+  return xScale; 
 }
 
 
