@@ -13,20 +13,22 @@ const svg = d3.select('body').append('svg')
   .append('g')
   .attr('transform', `translate( ${margin.left}, ${margin.top} )`);
 
-const circle = svg.append('circle')
-  .attr('cx', '25')
-  .attr('cy', '100')
-  .attr('r', '25');
 
-
-circle
-  .transition()
-  .attr('cx', '275')
-  .duration(3000);
-
-d3.csv('data/20-state-sample.csv').then((data) => {
-  createYAxis(data);
+d3.csv('data/10-state-sample.csv').then((data) => {
+  const yScale = createYAxis(data);
+  const xScale = createXAxis(data);
+  plot(data, xScale, yScale);
 });
+
+function plot(data, xScale, yScale) {
+  svg.selectAll('circle')
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('cx', d => xScale(d.state))
+    .attr('cy', d => yScale(d.population))
+    .attr('r', '5');
+}
 
 
 function createYAxis(data) {
@@ -37,22 +39,48 @@ function createYAxis(data) {
   const yAxis = d3.axisLeft(yScale);
   svg.append('g')
     .call(yAxis);
+  return yScale;
 }
 
 function createXAxis(data) {
-  const xScale = d3.scaleBand
+  const states = [];
+
+  data.forEach((d) => {
+    states.push(d.state);
+  });
+
+  const xScale = d3.scaleBand()
+    .domain(states)
+    .range([0, width]);
+  const xAxis = d3.axisBottom(xScale);
+  svg.append('g')
+    .attr('transform', `translate(0, ${height})`)
+    .call(xAxis)
+    .selectAll('.tick')
+    .selectAll('text')
+    // .attr('text-anchor', 'end')
+    .attr('transform', 'rotate(-45)');
+  return xScale;
 }
 
 
 function getMaxMin(data) {
-  for (let i = 0; i < data.length; i++) {
-    data[i].population = +data[i].population;
-  }
-  const maxPopulation = d3.max(data, (d) => {
-    return d.population;
+  data.forEach((d) => {
+    d.population = parseInt(d.population, 10); // eslint-disable-line no-param-reassign
   });
 
-  const minPopulation = d3.min(data, d => d.population)
-
-  return [minPopulation, maxPopulation];
+  const populationExtent = d3.extent(data, d => d.population);
+  return populationExtent;
 }
+
+
+// function testCircle() {
+//   const circle = svg.append('circle')
+//     .attr('cx', '25')
+//     .attr('cy', '100')
+//     .attr('r', '25');
+//   circle
+//     .transition()
+//     .attr('cx', '275')
+//     .duration(3000);
+// }
